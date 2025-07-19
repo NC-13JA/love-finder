@@ -1,0 +1,103 @@
+
+`html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>البحث عن الحب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      direction: rtl;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #e91e63;
+      margin-bottom: 30px;
+    }
+    label {
+      font-size: 18px;
+      margin: 15px 0 5px;
+      display: block;
+    }
+    select, input {
+      width: 80%;
+      max-width: 400px;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 14px 30px;
+      font-size: 18px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #startBtn {
+      background-color: #4caf50;
+      color: white;
+    }
+    #stopBtn {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 البحث عن الحب</h1>
+
+  <label for="gender">الجنس:</label>
+  <select id="gender">
+    <option>ذكر</option>
+    <option>أنثى</option>
+    <option>غير محدد</option>
+  </select>
+
+  <label for="age">العمر:</label>
+  <input type="number" id="age" min="18" max="99" placeholder="مثلاً: 25">
+
+  <label for="country">الدولة (تلقائي):</label>
+  <input type="text" id="country" placeholder="جارٍ التحديد..." disabled>
+
+  <div style="margin-top: 30px;">
+    <button id="startBtn">ابدأ البحث</button>
+    <button id="stopBtn">إلغاء البحث</button>
+  </div>
+
+  <script>
+    // تحديد الدولة تلقائيًا حسب IP
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('country').value = data.country_name || 'لم يتم التحديد';
+      })
+      .catch(() => {
+        document.getElementById('country').value = 'تعذر التحديد';
+      });
+
+    // طلب إذن الكاميرا والميكروفون
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(() => console.log("✅ تم منح صلاحية الكاميرا والميكروفون"))
+      .catch(() => alert("❗ يرجى السماح باستخدام الكاميرا والميكروفون"));
+
+    // وظائف الأزرار
+    document.getElementById('startBtn').onclick = () => {
+      alert("📡 جاري البحث عن شخص مناسب...");
+    };
+
+    document.getElementById('stopBtn').onclick = () => {
+      alert("🛑 تم إلغاء البحث.");
+    };
+  </script>
+
+</body>
+</html>
+`
