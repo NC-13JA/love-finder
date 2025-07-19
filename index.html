@@ -46,6 +46,16 @@
       background-color: #f44336;
       color: white;
     }
+    #preview {
+      width: 300px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #444;
+    }
   </style>
 </head>
 <body>
@@ -65,6 +75,9 @@
   <label for="country">الدولة (تلقائي):</label>
   <input type="text" id="country" placeholder="جارٍ التحديد..." disabled>
 
+  <video id="preview" autoplay playsinline></video>
+  <p id="status"></p>
+
   <div style="margin-top: 30px;">
     <button id="startBtn">ابدأ البحث</button>
     <button id="stopBtn">إلغاء البحث</button>
@@ -81,16 +94,23 @@
         document.getElementById('country').value = 'تعذر التحديد';
       });
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(() => console.log("✅ صلاحيات الكاميرا والميكروفون موجودة"))
-      .catch(() => alert("❗ يرجى السماح باستخدام الكاميرا والميكروفون"));
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    })
+    .then(stream => {
+      document.getElementById("preview").srcObject = stream;
+      console.log("✅ الكاميرا الأمامية تعمل");
+    })
+    .catch(() => {
+      alert("❗ يرجى السماح باستخدام الكاميرا");
+    });
   </script>
 
   <!-- مكتبات Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
-  <!-- كود الاتصال والمطابقة -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
@@ -104,6 +124,7 @@
 
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
     let myKey = null;
     let myData = null;
     let matched = false;
@@ -114,11 +135,13 @@
       const country = document.getElementById("country").value;
 
       myData = { gender, age, country, time: Date.now() };
+
       const newUserRef = db.ref("users").push();
       await newUserRef.set(myData);
       myKey = newUserRef.key;
 
-      alert("📡 تم إرسال بياناتك وجاري البحث...");
+      document.getElementById("status").innerText = "📡 جاري البحث عن شخص مطابق...";
+      document.getElementById("startBtn").disabled = true;
 
       db.ref("users").on("child_added", snapshot => {
         const other = snapshot.val();
@@ -139,13 +162,15 @@
             user1: myData,
             user2: other
           });
-          alert("🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId);
+          document.getElementById("status").innerText = "🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId;
         }
       });
     };
 
     document.getElementById("stopBtn").onclick = () => {
-      alert("🛑 تم إلغاء البحث.");
+      document.getElementById("status").innerText = "🛑 تم إلغاء البحث.";
+      document.getElementById("startBtn").disabled = false;
+      document.getElementById("startBtn").innerText = "ابدأ البحث";
       if (myKey) db.ref("users/" + myKey).remove();
       db.ref("users").off("child_added");
     };
