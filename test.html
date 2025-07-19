@@ -2,16 +2,15 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>اختبار Firebase على الهاتف</title>
+  <title>اختبار Firebase (هاتف)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- تحميل مكتبات Firebase باستخدام defer -->
-  <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js" defer></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
       direction: rtl;
-      background-color: #f0f0f0;
+      background-color: #f9f9f9;
       text-align: center;
       padding: 40px;
     }
@@ -19,7 +18,7 @@
       color: #2196f3;
     }
     button {
-      padding: 15px 30px;
+      padding: 14px 28px;
       font-size: 18px;
       background-color: #4caf50;
       color: white;
@@ -28,13 +27,12 @@
       cursor: pointer;
     }
     #status {
-      margin-top: 30px;
+      margin-top: 25px;
       font-size: 17px;
-      color: #333;
       background-color: #fff;
+      border: 1px solid #ccc;
       padding: 15px;
       border-radius: 8px;
-      border: 1px solid #ccc;
       max-width: 320px;
       margin-left: auto;
       margin-right: auto;
@@ -49,46 +47,48 @@
   <div id="status">📭 جاهز للاختبار</div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    window.onload = function () {
       const status = document.getElementById("status");
-      const waitForFirebase = setInterval(() => {
-        if (window.firebase && window.firebase.initializeApp) {
-          clearInterval(waitForFirebase);
+
+      // تأكد من وجود firebase
+      if (!window.firebase || !firebase.initializeApp) {
+        status.innerText = "🚫 مكتبة Firebase غير جاهزة. تأكد من الاتصال بالإنترنت.";
+        return;
+      }
+
+      try {
+        const config = {
+          apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
+          authDomain: "love-finder-firebase.firebaseapp.com",
+          databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "love-finder-firebase",
+          storageBucket: "love-finder-firebase.appspot.com",
+          messagingSenderId: "757722912246",
+          appId: "1:757722912246:web:050987f479ef634c9b23d7"
+        };
+
+        const app = firebase.initializeApp(config);
+        const db = firebase.database();
+
+        document.getElementById("testBtn").onclick = async () => {
+          status.innerText = "⏳ إرسال البيانات جارٍ...";
+
+          const testData = {
+            name: "اختبار من الهاتف",
+            time: new Date().toISOString()
+          };
 
           try {
-            const config = {
-              apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
-              authDomain: "love-finder-firebase.firebaseapp.com",
-              databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
-              projectId: "love-finder-firebase",
-              storageBucket: "love-finder-firebase.appspot.com",
-              messagingSenderId: "757722912246",
-              appId: "1:757722912246:web:050987f479ef634c9b23d7"
-            };
-
-            const app = firebase.initializeApp(config);
-            const db = firebase.database();
-
-            document.getElementById("testBtn").onclick = async () => {
-              status.innerText = "⏳ جاري إرسال البيانات...";
-              const data = {
-                name: "اختبار من الهاتف",
-                time: new Date().toISOString()
-              };
-
-              try {
-                await db.ref("test").push(data);
-                status.innerText = "✅ تم الحفظ بنجاح:\n" + JSON.stringify(data, null, 2);
-              } catch (err) {
-                status.innerText = "❌ فشل الإرسال:\n" + err.message;
-              }
-            };
+            await db.ref("test").push(testData);
+            status.innerText = "✅ تم الحفظ:\n" + JSON.stringify(testData, null, 2);
           } catch (err) {
-            status.innerText = "🚫 خطأ أثناء التهيئة:\n" + err.message;
+            status.innerText = "❌ فشل الإرسال:\n" + err.message;
           }
-        }
-      }, 300);
-    });
+        };
+      } catch (e) {
+        status.innerText = "🚫 خطأ في تهيئة Firebase:\n" + e.message;
+      }
+    };
   </script>
 
 </body>
