@@ -1,5 +1,3 @@
-
-`html
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -72,32 +70,84 @@
     <button id="stopBtn">إلغاء البحث</button>
   </div>
 
+  <!-- تحديد الدولة تلقائيًا باستخدام خدمة بديلة -->
   <script>
-    // تحديد الدولة تلقائيًا حسب IP
-    fetch('https://ipapi.co/json/')
+    fetch('https://api.country.is')
       .then(res => res.json())
       .then(data => {
-        document.getElementById('country').value = data.country_name || 'لم يتم التحديد';
+        document.getElementById('country').value = data.country || 'لم يتم التحديد';
       })
       .catch(() => {
         document.getElementById('country').value = 'تعذر التحديد';
       });
 
-    // طلب إذن الكاميرا والميكروفون
+    // طلب صلاحيات الكاميرا والميكروفون
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(() => console.log("✅ تم منح صلاحية الكاميرا والميكروفون"))
       .catch(() => alert("❗ يرجى السماح باستخدام الكاميرا والميكروفون"));
+  </script>
 
-    // وظائف الأزرار
-    document.getElementById('startBtn').onclick = () => {
-      alert("📡 جاري البحث عن شخص مناسب...");
+  <!-- مكتبات Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+
+  <script>
+    // إعداد Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
+      authDomain: "love-finder-firebase.firebaseapp.com",
+      databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "love-finder-firebase",
+      storageBucket: "love-finder-firebase.firebasestorage.app",
+      messagingSenderId: "757722912246",
+      appId: "1:757722912246:web:050987f479ef634c9b23d7"
     };
 
-    document.getElementById('stopBtn').onclick = () => {
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // زر "ابدأ البحث" - المطابقة بين المستخدمين
+    document.getElementById("startBtn").onclick = async () => {
+      const gender = document.getElementById("gender").value;
+      const age = document.getElementById("age").value;
+      const country = document.getElementById("country").value;
+
+      const userData = { gender, age, country, time: Date.now() };
+
+      const newUserRef = db.ref("users").push();
+      await newUserRef.set(userData);
+
+      db.ref("users").once("value", snapshot => {
+        const users = snapshot.val();
+        let found = false;
+
+        for (let key in users) {
+          if (key === newUserRef.key) continue;
+
+          const other = users[key];
+          const match =
+            other.gender === gender &&
+            other.age === age &&
+            other.country === country;
+
+          if (match) {
+            alert("🎯 تم العثور على مستخدم مطابق!");
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          alert("🕒 لا يوجد مستخدم مطابق حاليًا، يرجى الانتظار...");
+        }
+      });
+    };
+
+    // زر "إلغاء البحث"
+    document.getElementById("stopBtn").onclick = () => {
       alert("🛑 تم إلغاء البحث.");
     };
   </script>
 
 </body>
 </html>
-`
