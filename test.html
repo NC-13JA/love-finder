@@ -44,43 +44,48 @@
   <button id="testBtn">تشغيل الاختبار</button>
   <div id="status">📭 جاهز للاختبار</div>
 
+  <!-- مكتبات Firebase أولاً -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
+  <!-- الكود بعد تحميل المكتبات -->
   <script>
-    // إعداد Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
-      authDomain: "love-finder-firebase.firebaseapp.com",
-      databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "love-finder-firebase",
-      storageBucket: "love-finder-firebase.appspot.com",
-      messagingSenderId: "757722912246",
-      appId: "1:757722912246:web:050987f479ef634c9b23d7"
-    };
+    window.addEventListener("DOMContentLoaded", () => {
+      const status = document.getElementById("status");
 
-    try {
-      const app = firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
-      document.getElementById("testBtn").onclick = async () => {
-        const status = document.getElementById("status");
-        status.innerText = "⏳ جاري إرسال البيانات...";
-
-        const testData = {
-          name: "اختبار من الهاتف",
-          timestamp: Date.now()
+      try {
+        const firebaseConfig = {
+          apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
+          authDomain: "love-finder-firebase.firebaseapp.com",
+          databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "love-finder-firebase",
+          storageBucket: "love-finder-firebase.appspot.com",
+          messagingSenderId: "757722912246",
+          appId: "1:757722912246:web:050987f479ef634c9b23d7"
         };
 
-        try {
-          await db.ref("test").push(testData);
-          status.innerText = "✅ تم حفظ البيانات بنجاح في Firebase!";
-        } catch (e) {
-          status.innerText = "❌ فشل الإرسال إلى Firebase.\n" + e.message;
-        }
-      };
-    } catch (e) {
-      document.getElementById("status").innerText = "🚫 خطأ في تهيئة Firebase:\n" + e.message;
-    }
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        document.getElementById("testBtn").onclick = async () => {
+          status.innerText = "⏳ جاري إرسال البيانات...";
+
+          const testData = {
+            name: "اختبار من الهاتف",
+            timestamp: Date.now()
+          };
+
+          try {
+            await db.ref("test").push(testData);
+            status.innerText = "✅ تم حفظ البيانات بنجاح في Firebase!";
+          } catch (e) {
+            status.innerText = "❌ فشل الإرسال إلى Firebase.\n" + e.message;
+          }
+        };
+      } catch (e) {
+        status.innerText = "🚫 خطأ في تهيئة Firebase:\n" + e.message;
+      }
+    });
   </script>
 
 </body>
