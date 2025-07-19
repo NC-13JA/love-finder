@@ -54,7 +54,7 @@
     #status {
       margin-top: 20px;
       font-size: 18px;
-      color: #444;
+      color: #333;
     }
   </style>
 </head>
@@ -76,7 +76,7 @@
   <input type="text" id="country" placeholder="جارٍ التحديد..." disabled>
 
   <video id="preview" autoplay playsinline></video>
-  <p id="status"></p>
+  <p id="status">جاهز للبحث 🎯</p>
 
   <div style="margin-top: 30px;">
     <button id="startBtn">ابدأ البحث</button>
@@ -104,7 +104,7 @@
       });
   </script>
 
-  <!-- Firebase -->
+  <!-- مكتبات Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
@@ -114,7 +114,7 @@
       authDomain: "love-finder-firebase.firebaseapp.com",
       databaseURL: "https://love-finder-firebase-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "love-finder-firebase",
-      storageBucket: "love-finder-firebase.firebasestorage.app",
+      storageBucket: "love-finder-firebase.appspot.com",
       messagingSenderId: "757722912246",
       appId: "1:757722912246:web:050987f479ef634c9b23d7"
     };
@@ -132,15 +132,14 @@
       const country = document.getElementById("country").value;
 
       myData = { gender, age, country, time: Date.now() };
-
       const newUserRef = db.ref("users").push();
       await newUserRef.set(myData);
       myKey = newUserRef.key;
 
-      document.getElementById("status").innerText = "📡 جاري البحث عن شخص مطابق...";
+      document.getElementById("status").innerText = "📡 جاري البحث عن تطابق...";
       document.getElementById("startBtn").disabled = true;
 
-      // فحص المستخدمين السابقين أولاً
+      // البحث في الموجودين أولًا
       db.ref("users").once("value", snapshot => {
         const users = snapshot.val();
         for (let key in users) {
@@ -163,7 +162,7 @@
           }
         }
 
-        // إذا لم يُوجد تطابق، استمع للمستخدمين الجدد
+        // لم يوجد أحد — نبدأ الاستماع لحظيًا
         db.ref("users").on("child_added", snapshot => {
           const other = snapshot.val();
           const otherKey = snapshot.key;
