@@ -83,7 +83,7 @@
     <button id="stopBtn">إلغاء البحث</button>
   </div>
 
-  <!-- تحديد الدولة تلقائيًا -->
+  <!-- تحديد الدولة وتشغيل الكاميرا -->
   <script>
     fetch('https://api.country.is')
       .then(res => res.json())
@@ -94,20 +94,17 @@
         document.getElementById('country').value = 'تعذر التحديد';
       });
 
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
-    })
-    .then(stream => {
-      document.getElementById("preview").srcObject = stream;
-      console.log("✅ الكاميرا الأمامية تعمل");
-    })
-    .catch(() => {
-      alert("❗ يرجى السماح باستخدام الكاميرا");
-    });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+      .then(stream => {
+        document.getElementById("preview").srcObject = stream;
+        console.log("✅ الكاميرا الأمامية تعمل");
+      })
+      .catch(() => {
+        alert("❗ يرجى السماح باستخدام الكاميرا");
+      });
   </script>
 
-  <!-- مكتبات Firebase -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
@@ -143,34 +140,56 @@
       document.getElementById("status").innerText = "📡 جاري البحث عن شخص مطابق...";
       document.getElementById("startBtn").disabled = true;
 
-      db.ref("users").on("child_added", snapshot => {
-        const other = snapshot.val();
-        const otherKey = snapshot.key;
-
-        if (matched || otherKey === myKey) return;
-
-        const match =
-          other.gender === myData.gender &&
-          other.age === myData.age &&
-          other.country === myData.country;
-
-        if (match) {
-          matched = true;
-          const sessionId = "session-" + Math.random().toString(36).substring(2, 10);
-          db.ref("sessions/" + sessionId).set({
-            created: Date.now(),
-            user1: myData,
-            user2: other
-          });
-          document.getElementById("status").innerText = "🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId;
+      // فحص المستخدمين السابقين أولاً
+      db.ref("users").once("value", snapshot => {
+        const users = snapshot.val();
+        for (let key in users) {
+          if (key === myKey) continue;
+          const other = users[key];
+          if (
+            other.gender === myData.gender &&
+            other.age === myData.age &&
+            other.country === myData.country
+          ) {
+            matched = true;
+            const sessionId = "session-" + Math.random().toString(36).substring(2, 10);
+            db.ref("sessions/" + sessionId).set({
+              created: Date.now(),
+              user1: myData,
+              user2: other
+            });
+            document.getElementById("status").innerText = "🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId;
+            return;
+          }
         }
+
+        // إذا لم يُوجد تطابق، استمع للمستخدمين الجدد
+        db.ref("users").on("child_added", snapshot => {
+          const other = snapshot.val();
+          const otherKey = snapshot.key;
+          if (matched || otherKey === myKey) return;
+
+          if (
+            other.gender === myData.gender &&
+            other.age === myData.age &&
+            other.country === myData.country
+          ) {
+            matched = true;
+            const sessionId = "session-" + Math.random().toString(36).substring(2, 10);
+            db.ref("sessions/" + sessionId).set({
+              created: Date.now(),
+              user1: myData,
+              user2: other
+            });
+            document.getElementById("status").innerText = "🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId;
+          }
+        });
       });
     };
 
     document.getElementById("stopBtn").onclick = () => {
       document.getElementById("status").innerText = "🛑 تم إلغاء البحث.";
       document.getElementById("startBtn").disabled = false;
-      document.getElementById("startBtn").innerText = "ابدأ البحث";
       if (myKey) db.ref("users/" + myKey).remove();
       db.ref("users").off("child_added");
     };
