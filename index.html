@@ -70,7 +70,7 @@
     <button id="stopBtn">إلغاء البحث</button>
   </div>
 
-  <!-- تحديد الدولة تلقائيًا باستخدام خدمة بسيطة -->
+  <!-- تحديد الدولة تلقائيًا -->
   <script>
     fetch('https://api.country.is')
       .then(res => res.json())
@@ -90,6 +90,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
+  <!-- كود الاتصال والمطابقة -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
@@ -103,52 +104,50 @@
 
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    let myKey = null;
+    let myData = null;
+    let matched = false;
 
     document.getElementById("startBtn").onclick = async () => {
       const gender = document.getElementById("gender").value;
       const age = document.getElementById("age").value;
       const country = document.getElementById("country").value;
 
-      const userData = { gender, age, country, time: Date.now() };
-
+      myData = { gender, age, country, time: Date.now() };
       const newUserRef = db.ref("users").push();
-      await newUserRef.set(userData);
+      await newUserRef.set(myData);
+      myKey = newUserRef.key;
 
-      db.ref("users").once("value", snapshot => {
-        const users = snapshot.val();
-        let foundUser = null;
+      alert("📡 تم إرسال بياناتك وجاري البحث...");
 
-        for (let key in users) {
-          if (key === newUserRef.key) continue;
+      db.ref("users").on("child_added", snapshot => {
+        const other = snapshot.val();
+        const otherKey = snapshot.key;
 
-          const other = users[key];
-          const match =
-            other.gender === gender &&
-            other.age === age &&
-            other.country === country;
+        if (matched || otherKey === myKey) return;
 
-          if (match) {
-            foundUser = other;
-            break;
-          }
-        }
+        const match =
+          other.gender === myData.gender &&
+          other.age === myData.age &&
+          other.country === myData.country;
 
-        if (foundUser) {
+        if (match) {
+          matched = true;
           const sessionId = "session-" + Math.random().toString(36).substring(2, 10);
           db.ref("sessions/" + sessionId).set({
             created: Date.now(),
-            user1: userData,
-            user2: foundUser
+            user1: myData,
+            user2: other
           });
-          alert("🎯 تم إنشاء جلسة: " + sessionId);
-        } else {
-          alert("🕒 لا يوجد مستخدم مطابق الآن، يرجى الانتظار...");
+          alert("🎯 تم العثور على تطابق! رقم الجلسة: " + sessionId);
         }
       });
     };
 
     document.getElementById("stopBtn").onclick = () => {
       alert("🛑 تم إلغاء البحث.");
+      if (myKey) db.ref("users/" + myKey).remove();
+      db.ref("users").off("child_added");
     };
   </script>
 
