@@ -7,22 +7,26 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #fff;
+      background-color: #f3f3f3;
       direction: rtl;
       text-align: center;
-      padding: 50px;
+      padding: 40px;
+    }
+    h1 {
+      color: #2196f3;
+      margin-bottom: 30px;
     }
     button {
-      padding: 15px 25px;
+      padding: 15px 30px;
       font-size: 20px;
-      background-color: #2196f3;
+      background-color: #4caf50;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
     }
     #result {
-      margin-top: 30px;
+      margin-top: 25px;
       font-size: 18px;
       color: #333;
     }
@@ -32,13 +36,14 @@
 
   <h1>🔧 اختبار الاتصال بـ Firebase</h1>
   <button id="testBtn">تشغيل الاختبار</button>
-  <p id="result"></p>
+  <p id="result">لم يتم الضغط بعد</p>
 
   <!-- مكتبات Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
   <script>
+    // إعداد Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
       authDomain: "love-finder-firebase.firebaseapp.com",
@@ -53,17 +58,20 @@
     const db = firebase.database();
 
     document.getElementById("testBtn").onclick = async () => {
+      const resultEl = document.getElementById("result");
+      resultEl.innerText = "⏳ جاري إرسال البيانات...";
+
       const dummyData = {
-        name: "اختبار الاتصال",
-        timestamp: Date.now()
+        name: "اختبار من إسلام",
+        time: Date.now()
       };
 
       try {
         await db.ref("test").push(dummyData);
-        document.getElementById("result").innerText = "✅ تم حفظ البيانات بنجاح في Firebase!";
+        resultEl.innerText = "✅ تم حفظ البيانات بنجاح في Firebase!";
       } catch (error) {
         console.error(error);
-        document.getElementById("result").innerText = "❌ فشل الإرسال إلى Firebase.";
+        resultEl.innerText = "❌ فشل الإرسال! راجع الاتصال أو إعدادات القاعدة.";
       }
     };
   </script>
