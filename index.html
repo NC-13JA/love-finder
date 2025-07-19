@@ -70,7 +70,7 @@
     <button id="stopBtn">إلغاء البحث</button>
   </div>
 
-  <!-- تحديد الدولة تلقائيًا باستخدام خدمة بديلة -->
+  <!-- تحديد الدولة تلقائيًا باستخدام خدمة بسيطة -->
   <script>
     fetch('https://api.country.is')
       .then(res => res.json())
@@ -81,9 +81,8 @@
         document.getElementById('country').value = 'تعذر التحديد';
       });
 
-    // طلب صلاحيات الكاميرا والميكروفون
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(() => console.log("✅ تم منح صلاحية الكاميرا والميكروفون"))
+      .then(() => console.log("✅ صلاحيات الكاميرا والميكروفون موجودة"))
       .catch(() => alert("❗ يرجى السماح باستخدام الكاميرا والميكروفون"));
   </script>
 
@@ -92,7 +91,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
 
   <script>
-    // إعداد Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCRlyB6ksxcN1I5E6uwTJNxGxQVWEnZQdg",
       authDomain: "love-finder-firebase.firebaseapp.com",
@@ -106,7 +104,6 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // زر "ابدأ البحث" - المطابقة بين المستخدمين
     document.getElementById("startBtn").onclick = async () => {
       const gender = document.getElementById("gender").value;
       const age = document.getElementById("age").value;
@@ -119,7 +116,7 @@
 
       db.ref("users").once("value", snapshot => {
         const users = snapshot.val();
-        let found = false;
+        let foundUser = null;
 
         for (let key in users) {
           if (key === newUserRef.key) continue;
@@ -131,19 +128,25 @@
             other.country === country;
 
           if (match) {
-            alert("🎯 تم العثور على مستخدم مطابق!");
-            found = true;
+            foundUser = other;
             break;
           }
         }
 
-        if (!found) {
-          alert("🕒 لا يوجد مستخدم مطابق حاليًا، يرجى الانتظار...");
+        if (foundUser) {
+          const sessionId = "session-" + Math.random().toString(36).substring(2, 10);
+          db.ref("sessions/" + sessionId).set({
+            created: Date.now(),
+            user1: userData,
+            user2: foundUser
+          });
+          alert("🎯 تم إنشاء جلسة: " + sessionId);
+        } else {
+          alert("🕒 لا يوجد مستخدم مطابق الآن، يرجى الانتظار...");
         }
       });
     };
 
-    // زر "إلغاء البحث"
     document.getElementById("stopBtn").onclick = () => {
       alert("🛑 تم إلغاء البحث.");
     };
