@@ -2,8 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>اختبار Firebase (هاتف)</title>
+  <title>اختبار Firebase (نسخة الهاتف الآمنة)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- تحميل المكتبات باستخدام defer لضمان اكتمال التحميل -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js" defer></script>
   <style>
@@ -27,7 +28,7 @@
       cursor: pointer;
     }
     #status {
-      margin-top: 25px;
+      margin-top: 30px;
       font-size: 17px;
       background-color: #fff;
       border: 1px solid #ccc;
@@ -46,13 +47,13 @@
   <button id="testBtn">تشغيل الاختبار</button>
   <div id="status">📭 جاهز للاختبار</div>
 
+  <!-- كود الاتصال وتنفيذ الاختبار -->
   <script>
-    window.onload = function () {
+    window.addEventListener("load", () => {
       const status = document.getElementById("status");
 
-      // تأكد من وجود firebase
       if (!window.firebase || !firebase.initializeApp) {
-        status.innerText = "🚫 مكتبة Firebase غير جاهزة. تأكد من الاتصال بالإنترنت.";
+        status.innerText = "🚫 مكتبة Firebase غير جاهزة. تحقق من الاتصال أو تأخر التحميل.";
         return;
       }
 
@@ -71,24 +72,24 @@
         const db = firebase.database();
 
         document.getElementById("testBtn").onclick = async () => {
-          status.innerText = "⏳ إرسال البيانات جارٍ...";
+          status.innerText = "⏳ جاري الإرسال...";
 
           const testData = {
-            name: "اختبار من الهاتف",
+            name: "اختبار نهائي من الهاتف",
             time: new Date().toISOString()
           };
 
           try {
             await db.ref("test").push(testData);
-            status.innerText = "✅ تم الحفظ:\n" + JSON.stringify(testData, null, 2);
+            status.innerText = "✅ تم حفظ البيانات بنجاح:\n" + JSON.stringify(testData, null, 2);
           } catch (err) {
             status.innerText = "❌ فشل الإرسال:\n" + err.message;
           }
         };
-      } catch (e) {
-        status.innerText = "🚫 خطأ في تهيئة Firebase:\n" + e.message;
+      } catch (err) {
+        status.innerText = "🚫 خطأ أثناء تهيئة Firebase:\n" + err.message;
       }
-    };
+    });
   </script>
 
 </body>
